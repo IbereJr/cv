@@ -1,0 +1,21 @@
+pipeline {
+  agent any
+  environment {
+    WSDIR = '/root/prod/web/Sites/teste'
+    WS = 'cvibere'
+  }
+  stages {
+    stage('UpdateDirectory') {
+      steps {
+        script {
+          withCredentials([sshUserPrivateKey(credentialsId: 'iberekey', keyFileVariable: 'key', usernameVariable: 'user')]) {
+            print 'username=' + user
+            print 'Copiando conteúdo'
+            sh 'scp -o "StrictHostKeyChecking no" -r -i '+key+' $(pwd) '+user+'@192.168.15.10:'+WSDIR+'/'+WS
+          }
+        }
+      }
+    }
+  }
+}
+
