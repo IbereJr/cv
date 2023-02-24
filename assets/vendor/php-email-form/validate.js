@@ -26,7 +26,6 @@
       thisForm.querySelector('.sent-message').classList.remove('d-block');
 
       let formData = new FormData( thisForm );
-
       if ( recaptcha ) {
         if(typeof grecaptcha !== "undefined" ) {
           grecaptcha.ready(function() {
@@ -44,28 +43,33 @@
           displayError(thisForm, 'The reCaptcha javascript API url is not loaded!')
         }
       } else {
+	console.log(thisForm);
+	console.log(formData);
         php_email_form_submit(thisForm, action, formData);
       }
     });
   });
 
   function php_email_form_submit(thisForm, action, formData) {
+    var obj= {};
+    formData.forEach(function(value, key){
+       obj[key] = value;
+    });
+    var json = JSON.stringify(obj);
+
     fetch(action, {
       method: 'POST',
-      body: formData,
-      headers: {'X-Requested-With': 'XMLHttpRequest'}
+      body: json,
+      headers: {'Accept': 'application/json',
+      'Content-Type': 'application/json','X-Requested-With': 'XMLHttpRequest'}
     })
     .then(response => {
       return response.text();
     })
     .then(data => {
       thisForm.querySelector('.loading').classList.remove('d-block');
-      if (data.trim() == 'OK') {
-        thisForm.querySelector('.sent-message').classList.add('d-block');
-        thisForm.reset(); 
-      } else {
-        throw new Error(data ? data : 'Form submission failed and no error message returned from: ' + action); 
-      }
+      thisForm.querySelector('.sent-message').classList.add('d-block');
+      thisForm.reset(); 
     })
     .catch((error) => {
       displayError(thisForm, error);
